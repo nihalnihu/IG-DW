@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from instagrapi import Client
 import threading
 import time
+from PIL import Image
 
 # Initialize the Flask app
 app = Flask(__name__)
