@@ -15,10 +15,10 @@ def handle_messages():
 
             for message in messages:
                 # Check if the message contains "Halo Guys"
-                if "Halo Guys" in message['text']:
+                if "Hi" in message['text']:
                     # Send a reply with "Hi"
                     bot.send_message("Hi", message['user_id'])
-                    print(f"Replied to {message['user_id']} with 'Hi'")
+                    print(f"Replied to {message['user_id']} with 'Halo'")
 
             # Sleep to avoid hitting rate limits too quickly
             time.sleep(60)  # Adjust as needed
