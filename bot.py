@@ -45,6 +45,12 @@ def get_media_info(api, shortcode):
         print(f"Error fetching media info: {e}")
     return None, None
 
+def reply_to_message(api, user_id, text):
+    try:
+        api.direct_message(text, [user_id])
+    except Exception as e:
+        print(f"Failed to send message: {e}")
+
 def main():
     # Hardcoded credentials
     username = "nih4l.23"
@@ -59,11 +65,13 @@ def main():
             messages = api.LastJson['inbox']['threads']
             for thread in messages:
                 for item in thread['items']:
-                    if item['item_type'] == 'link':
-                        link_text = item['link']['text']
+                    if item['item_type'] == 'text':
+                        message_text = item['text']['text']
                         user_id = item['user_id']
-                        if "instagram.com/p/" in link_text or "instagram.com/reel/" in link_text:
-                            shortcode = link_text.split("/")[-2]
+                        if message_text.lower() == "Hi":
+                            reply_to_message(api, user_id, "Hallo")
+                        elif "instagram.com/p/" in message_text or "instagram.com/reel/" in message_text:
+                            shortcode = message_text.split("/")[-2]
                             media_url, media_type = get_media_info(api, shortcode)
                             if media_url:
                                 media_path = download_media(media_url, media_type)
