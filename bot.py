@@ -2,7 +2,13 @@ from InstagramAPI import InstagramAPI
 import requests
 import time
 import os
+from flask import Flask, request, jsonify, Response
+import threading
 
+# Initialize Flask app
+app = Flask(__name__)
+
+# Your Instagram bot functions
 def download_media(media_url, media_type):
     media_path = "temp_media"
     if media_type == "photo":
@@ -51,14 +57,7 @@ def reply_to_message(api, user_id, text):
     except Exception as e:
         print(f"Failed to send message: {e}")
 
-def main():
-    # Hardcoded credentials
-    username = "nih4l.23"
-    password = "434290"
-
-    api = InstagramAPI(username, password)
-    api.login()
-
+def run_bot(api):
     while True:
         try:
             api.getv2Inbox()
@@ -68,7 +67,7 @@ def main():
                     if item['item_type'] == 'text':
                         message_text = item['text']['text']
                         user_id = item['user_id']
-                        if message_text.lower() == "Hi":
+                        if message_text.lower() == "hi":
                             reply_to_message(api, user_id, "Hallo")
                         elif "instagram.com/p/" in message_text or "instagram.com/reel/" in message_text:
                             shortcode = message_text.split("/")[-2]
@@ -82,5 +81,38 @@ def main():
             print(f"An error occurred: {e}")
         time.sleep(60)  # Check every 60 seconds
 
+@app.route('/status', methods=['GET'])
+def status():
+    return jsonify({"status": "Running"})
+
+@app.route('/start-bot', methods=['POST'])
+def start_bot():
+    data = request.json
+    username = data.get('username')
+    password = data.get('password')
+
+    if not username or not password:
+        return jsonify({"error": "Username and password are required"}), 400
+
+    api = InstagramAPI(username, password)
+    if not api.login():
+        return jsonify({"error": "Login failed"}), 401
+
+    # Start the bot in a separate thread
+    threading.Thread(target=run_bot, args=(api,), daemon=True).start()
+    return jsonify({"message": "Bot started"}), 200
+
 if __name__ == "__main__":
-    main()
+    # Example credentials; in a real scenario, you'd probably use environment variables or a secure method.
+    username = "nih4l.23"
+    password = "434290"
+    
+    api = InstagramAPI(username, password)
+    if api.login():
+        # Start the bot in a separate thread
+        threading.Thread(target=run_bot, args=(api,), daemon=True).start()
+    else:
+        print("Failed to login")
+
+    # Run the Flask app
+    app.run(host='0.0.0.0', port=8000)
