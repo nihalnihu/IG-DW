@@ -1,29 +1,21 @@
-from instagrapi import Client
-from instagrapi.exceptions import LoginRequired
+from instabot import Bot
 
-# Replace with your credentials
-username = "nihaaal.24"
-password = "nihalnik96/"
+# Create a bot instance
+bot = Bot()
 
-client = Client()
+# Login to your Instagram account
+bot.login(username="nihaaal.24", password="nihalnik96/")
 
-try:
-    client.login(username, password)
-except LoginRequired as e:
-    print(f"Login failed: {e}")
-    exit(1)
+# Define a function to respond to messages
+def handle_messages():
+    # Fetch all messages
+    messages = bot.get_messages()
 
-def handle_message(message):
-    try:
-        sender = message.sender_id
-        if message.text.lower() == "hi":
-            client.send_message(sender, "Hi")
-    except Exception as e:
-        print(f"Error handling message: {e}")
+    for message in messages:
+        # Check if the message contains "Halo Guys"
+        if "Halo Guys" in message['text']:
+            # Send a reply with "Hi"
+            bot.send_message("Hi", message['user_id'])
 
-# Ensure the library has the necessary method for handling messages
-# The instagrapi library does not have built-in real-time message handling.
-# This is a placeholder for where you might handle messages if such functionality is available.
-
-print("Bot is running. Awaiting messages...")
-# Polling for new messages might be needed here if real-time handling is not available.
+# Run the message handling function
+handle_messages()
