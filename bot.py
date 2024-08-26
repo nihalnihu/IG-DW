@@ -38,7 +38,7 @@ def get_media_info(api, shortcode):
             return item['image_versions2']['candidates'][0]['url'], "photo"
     return None, None
 
-api = InstagramAPI("your_username", "your_password")
+api = InstagramAPI("nih4l.23", "434290")
 api.login()
 
 while True:
