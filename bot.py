@@ -1,118 +1,18 @@
-from InstagramAPI import InstagramAPI
-import requests
-import time
-import os
-from flask import Flask, request, jsonify, Response
-import threading
+from instagrapi import Client
 
-# Initialize Flask app
-app = Flask(__name__)
+# Replace with your credentials 
+# nihaaal.24 nihalnik96/
+username = "nihaaal.24"
+password = "nihalnik96/"
 
-# Your Instagram bot functions
-def download_media(media_url, media_type):
-    media_path = "temp_media"
-    if media_type == "photo":
-        media_path += ".jpg"
-    elif media_type == "video":
-        media_path += ".mp4"
+client = Client()
+client.login(username, password)
 
-    response = requests.get(media_url, stream=True)
-    if response.status_code == 200:
-        with open(media_path, 'wb') as file:
-            for chunk in response.iter_content(1024):
-                file.write(chunk)
-        return media_path
-    else:
-        raise Exception("Failed to download media")
+def handle_message(message):
+    sender = message.sender_id
+    if message.text.lower() == "hallo":
+        client.send_message(sender, "Hi")
 
-def send_media(api, user_id, media_path, media_type):
-    try:
-        if media_type == "photo":
-            api.uploadPhoto(media_path)
-        elif media_type == "video":
-            api.uploadVideo(media_path)
-        api.direct_message("Here is the media you requested!", [user_id])
-    except Exception as e:
-        print(f"Failed to send media: {e}")
-    finally:
-        os.remove(media_path)  # Clean up by removing the temporary file
-
-def get_media_info(api, shortcode):
-    try:
-        api.getMediaInfo(shortcode)
-        media_info = api.LastJson
-        if media_info['items']:
-            item = media_info['items'][0]
-            if 'video_versions' in item:
-                return item['video_versions'][0]['url'], "video"
-            elif 'image_versions2' in item:
-                return item['image_versions2']['candidates'][0]['url'], "photo"
-    except Exception as e:
-        print(f"Error fetching media info: {e}")
-    return None, None
-
-def reply_to_message(api, user_id, text):
-    try:
-        api.direct_message(text, [user_id])
-    except Exception as e:
-        print(f"Failed to send message: {e}")
-
-def run_bot(api):
-    while True:
-        try:
-            api.getv2Inbox()
-            messages = api.LastJson['inbox']['threads']
-            for thread in messages:
-                for item in thread['items']:
-                    if item['item_type'] == 'text':
-                        message_text = item['text']['text']
-                        user_id = item['user_id']
-                        if message_text.lower() == "hi":
-                            reply_to_message(api, user_id, "Hallo")
-                        elif "instagram.com/p/" in message_text or "instagram.com/reel/" in message_text:
-                            shortcode = message_text.split("/")[-2]
-                            media_url, media_type = get_media_info(api, shortcode)
-                            if media_url:
-                                media_path = download_media(media_url, media_type)
-                                send_media(api, user_id, media_path, media_type)
-                            else:
-                                print("Could not fetch media information.")
-        except Exception as e:
-            print(f"An error occurred: {e}")
-        time.sleep(60)  # Check every 60 seconds
-
-@app.route('/status', methods=['GET'])
-def status():
-    return jsonify({"status": "Running"})
-
-@app.route('/start-bot', methods=['POST'])
-def start_bot():
-    data = request.json
-    username = data.get('username')
-    password = data.get('password')
-
-    if not username or not password:
-        return jsonify({"error": "Username and password are required"}), 400
-
-    api = InstagramAPI(username, password)
-    if not api.login():
-        return jsonify({"error": "Login failed"}), 401
-
-    # Start the bot in a separate thread
-    threading.Thread(target=run_bot, args=(api,), daemon=True).start()
-    return jsonify({"message": "Bot started"}), 200
-
-if __name__ == "__main__":
-    # Example credentials; in a real scenario, you'd probably use environment variables or a secure method.
-    username = "nih4l.23"
-    password = "434290"
-    
-    api = InstagramAPI(username, password)
-    if api.login():
-        # Start the bot in a separate thread
-        threading.Thread(target=run_bot, args=(api,), daemon=True).start()
-    else:
-        print("Failed to login")
-
-    # Run the Flask app
-    app.run(host='0.0.0.0', port=8000)
+# Assuming the library has a method to listen for messages
+client.add_message_handler(handle_message)
+client.listen_for_messages()
