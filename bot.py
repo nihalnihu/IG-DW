@@ -1,18 +1,29 @@
 from instagrapi import Client
+from instagrapi.exceptions import LoginRequired
 
-# Replace with your credentials 
-# nihaaal.24 nihalnik96/
+# Replace with your credentials
 username = "nihaaal.24"
 password = "nihalnik96/"
 
 client = Client()
-client.login(username, password)
+
+try:
+    client.login(username, password)
+except LoginRequired as e:
+    print(f"Login failed: {e}")
+    exit(1)
 
 def handle_message(message):
-    sender = message.sender_id
-    if message.text.lower() == "hallo":
-        client.send_message(sender, "Hi")
+    try:
+        sender = message.sender_id
+        if message.text.lower() == "hi":
+            client.send_message(sender, "Hi")
+    except Exception as e:
+        print(f"Error handling message: {e}")
 
-# Assuming the library has a method to listen for messages
-client.add_message_handler(handle_message)
-client.listen_for_messages()
+# Ensure the library has the necessary method for handling messages
+# The instagrapi library does not have built-in real-time message handling.
+# This is a placeholder for where you might handle messages if such functionality is available.
+
+print("Bot is running. Awaiting messages...")
+# Polling for new messages might be needed here if real-time handling is not available.
